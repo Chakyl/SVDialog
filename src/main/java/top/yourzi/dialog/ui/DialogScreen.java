@@ -22,6 +22,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 import top.yourzi.dialog.Dialog;
 import top.yourzi.dialog.DialogManager;
+import top.yourzi.dialog.config.ClientConfig;
 import top.yourzi.dialog.model.*;
 import top.yourzi.dialog.util.STBBackendImage;
 
@@ -79,19 +80,19 @@ public class DialogScreen extends Screen {
     private int totalHistoryContentHeight = 0;
     private boolean canScrollHistoryDown = false;
     private boolean canScrollHistoryUp = false;
-    
+
     // 历史记录音频播放相关
     private final List<HistoryAudioButton> historyAudioButtons = new ArrayList<>();
     private SimpleSoundInstance currentHistoryAudio = null; // 当前播放的历史记录音频
-    
+
     // 说话实体（可选）
     private final net.minecraft.world.entity.Entity speakerEntity;
-    
+
     // 音频播放现在由DialogManager全局管理
     public DialogScreen(DialogSequence dialogSequence, DialogEntry dialogEntry, String playerName) {
         this(dialogSequence, dialogEntry, playerName, null);
     }
-    
+
     /**
      * 带说话实体的构造函数
      */
@@ -170,11 +171,11 @@ public class DialogScreen extends Screen {
             this.fastForwardCooldown = 5;
             DialogManager.setFastForwardingNext(false); // 重置标记
         }
-        
+
         // 初始化音频播放
         initializeAudio();
     }
-    
+
     /**
      * 初始化音频播放
      */
@@ -184,7 +185,7 @@ public class DialogScreen extends Screen {
             DialogManager.playDialogAudio(dialogEntry.getAudioPath());
         }
     }
-    
+
     // 音频播放方法已移至DialogManager进行全局管理
 
     // 管理背景图片显示数据
@@ -233,14 +234,14 @@ public class DialogScreen extends Screen {
         // 设置对话框位置和大小
         dialogBoxWidth = top.yourzi.dialog.config.ClientConfig.DIALOG_BOX_WIDTH.get();
         dialogBoxHeight = top.yourzi.dialog.config.ClientConfig.DIALOG_BOX_HEIGHT.get();
-        dialogBoxX = (width - dialogBoxWidth) / 2;
+        dialogBoxX = ((width - dialogBoxWidth) / 2) + ClientConfig.DIALOG_BOX_X_OFFSET.get();
         dialogBoxY = height - dialogBoxHeight - 20;
 
         // 初始化查看历史按钮 (位于对话框右下角)
         int historyButtonWidth = 20;
         int historyButtonHeight = 20;
         int historyButtonPadding = 5;
-        
+
         // 获取按钮纹理信息
         ResourceLocation historyButtonTexture;
         int historyXTexStart = 0;
@@ -248,11 +249,11 @@ public class DialogScreen extends Screen {
         int historyYDiffText = historyButtonHeight;
         int historyTextureWidth = 256;
         int historyTextureHeight = 128;
-        
+
         // 优先使用本地自定义按钮图集，如果没有则使用原版纹理
         ResourceLocation customButtonAtlas = new ResourceLocation(Dialog.MODID, "textures/buttons/button_atlas.png");
         boolean useCustomTexture = false;
-        
+
         try {
             Optional<Resource> resourceOptional = Minecraft.getInstance().getResourceManager().getResource(customButtonAtlas);
             if (resourceOptional.isPresent()) {
@@ -264,7 +265,7 @@ public class DialogScreen extends Screen {
         } catch (Exception e) {
             historyButtonTexture = new ResourceLocation("minecraft", "textures/gui/widgets.png");
         }
-        
+
         if (!useCustomTexture) {
             // 原版按钮纹理的起始位置和差值
             historyXTexStart = 0;
@@ -280,7 +281,7 @@ public class DialogScreen extends Screen {
             historyTextureWidth = 256;
             historyTextureHeight = 128;
         }
-        
+
         this.viewHistoryButton = new ImageButton(
                 dialogBoxX + dialogBoxWidth - historyButtonWidth - historyButtonPadding,
                 dialogBoxY + dialogBoxHeight - historyButtonHeight - historyButtonPadding,
@@ -295,7 +296,7 @@ public class DialogScreen extends Screen {
         // 初始化自动播放按钮 (位于历史记录按钮左侧)
         int autoPlayButtonWidth = 20;
         int autoPlayButtonHeight = 20;
-        
+
         // 获取自动播放按钮纹理信息
         ResourceLocation autoPlayButtonTexture;
         int autoPlayXTexStart = 0;
@@ -303,9 +304,9 @@ public class DialogScreen extends Screen {
         int autoPlayYDiffText = autoPlayButtonHeight;
         int autoPlayTextureWidth = 256;
         int autoPlayTextureHeight = 128;
-        
+
         boolean useCustomAutoPlayTexture = false;
-        
+
         try {
             Optional<Resource> resourceOptional = Minecraft.getInstance().getResourceManager().getResource(customButtonAtlas);
             if (resourceOptional.isPresent()) {
@@ -317,7 +318,7 @@ public class DialogScreen extends Screen {
         } catch (Exception e) {
             autoPlayButtonTexture = new ResourceLocation("minecraft", "textures/gui/widgets.png");
         }
-        
+
         if (!useCustomAutoPlayTexture) {
             // 原版按钮纹理的起始位置和差值
             autoPlayXTexStart = 0;
@@ -333,7 +334,7 @@ public class DialogScreen extends Screen {
             autoPlayTextureWidth = 256;
             autoPlayTextureHeight = 128;
         }
-        
+
         this.autoPlayButton = new ImageButton(
                 dialogBoxX + dialogBoxWidth - historyButtonWidth - historyButtonPadding - autoPlayButtonWidth - historyButtonPadding,
                 dialogBoxY + dialogBoxHeight - autoPlayButtonHeight - historyButtonPadding,
@@ -358,7 +359,7 @@ public class DialogScreen extends Screen {
         // 初始化关闭历史记录按钮 (用于关闭历史查看界面)
         int closeButtonWidth = 60;
         int closeButtonHeight = 20;
-        
+
         // 获取关闭按钮纹理信息
         ResourceLocation closeButtonTexture;
         int closeXTexStart = 0;
@@ -366,9 +367,9 @@ public class DialogScreen extends Screen {
         int closeYDiffText = closeButtonHeight;
         int closeTextureWidth = 256;
         int closeTextureHeight = 128;
-        
+
         boolean useCustomCloseTexture = false;
-        
+
         try {
             Optional<Resource> resourceOptional = Minecraft.getInstance().getResourceManager().getResource(customButtonAtlas);
             if (resourceOptional.isPresent()) {
@@ -380,7 +381,7 @@ public class DialogScreen extends Screen {
         } catch (Exception e) {
             closeButtonTexture = new ResourceLocation("minecraft", "textures/gui/widgets.png");
         }
-        
+
         if (!useCustomCloseTexture) {
             // 原版按钮纹理的起始位置和差值
             closeXTexStart = 0;
@@ -396,7 +397,7 @@ public class DialogScreen extends Screen {
             closeTextureWidth = 256;
             closeTextureHeight = 128;
         }
-        
+
         this.closeHistoryButton = new ImageButton(
                 this.width / 2 - closeButtonWidth / 2, this.height - 30,
                 closeButtonWidth, closeButtonHeight,
@@ -428,7 +429,7 @@ public class DialogScreen extends Screen {
         // 优先使用本地自定义按钮图集，如果没有则使用原版纹理
         ResourceLocation customButtonAtlas = new ResourceLocation(Dialog.MODID, "textures/buttons/button_atlas.png");
         boolean useCustomTexture = false;
-        
+
         try {
             Optional<Resource> resourceOptional = Minecraft.getInstance().getResourceManager().getResource(customButtonAtlas);
             if (resourceOptional.isPresent()) {
@@ -443,7 +444,7 @@ public class DialogScreen extends Screen {
         } catch (Exception e) {
             Dialog.LOGGER.error("Error accessing custom button atlas resource: {}", customButtonAtlas, e);
         }
-        
+
         if (!useCustomTexture) {
             // 使用Minecraft原版按钮纹理
             buttonTextureLocation = new ResourceLocation("minecraft", "textures/gui/widgets.png");
@@ -455,7 +456,7 @@ public class DialogScreen extends Screen {
 
         int buttonSpacing = 5;
         int totalHeight = options.length * (buttonHeight + buttonSpacing) - buttonSpacing;
-        
+
         // 计算选项按钮的起始Y位置，如果有物品显示则需要额外上移
         int startY = dialogBoxY - totalHeight - 10;
         if (!this.displayItemStacks.isEmpty()) {
@@ -473,7 +474,7 @@ public class DialogScreen extends Screen {
             int xTexStart = 0;
             int yTexStart = 0;
             int yDiffText = buttonHeight;
-            
+
             if (!useCustomTexture) {
                 // 原版按钮纹理的起始位置和差值
                 xTexStart = 0;
@@ -485,7 +486,7 @@ public class DialogScreen extends Screen {
                 yTexStart = 0;
                 yDiffText = 20; // 悬停状态在下方20像素处
             }
-            
+
             OptionButton button = new OptionButton(
                     (width - buttonWidth) / 2, // xPos
                     buttonY,                   // yPos
@@ -598,6 +599,10 @@ public class DialogScreen extends Screen {
                             baseX = this.width - scaledWidth - 20;
                             baseY = this.height - scaledHeight;
                             break;
+                        case INLINE:
+                            baseX = dialogBoxX - dialogBoxHeight;
+                            baseY = dialogBoxY;
+                            break;
                         case CENTER:
                         default:
                             baseX = (this.width - scaledWidth) / 2;
@@ -608,7 +613,7 @@ public class DialogScreen extends Screen {
                     int finalX = baseX + (int) xOffset;
                     int finalY = baseY + (int) yOffset;
 
-                    guiGraphics.blit(displayData.resourceLocation, finalX, finalY, 0, 0, scaledWidth, scaledHeight, scaledWidth, scaledHeight);
+                    guiGraphics.blit(displayData.resourceLocation, finalX, finalY, 0, 0, dialogBoxHeight, dialogBoxHeight, dialogBoxHeight, dialogBoxHeight);
                     RenderSystem.disableBlend();
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 重置颜色
                 }
@@ -635,7 +640,7 @@ public class DialogScreen extends Screen {
                 Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
                 // 回退到纯色背景
                 int backgroundColor = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_COLOR.get();
-        int opacity = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_OPACITY.get();
+                int opacity = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_OPACITY.get();
                 int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
                 guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
             }
@@ -731,7 +736,7 @@ public class DialogScreen extends Screen {
             // 如果自动播放开启，且文本完全显示，且没有选项，则延迟后自动前进
             if (DialogManager.isAutoPlaying() && textFullyDisplayed && !dialogEntry.hasOptions()) {
                 boolean canAutoAdvance = false;
-                
+
                 // 如果当前对话有音频，等待音频播放完毕再跳转
                 if (dialogEntry.getAudioPath() != null && !dialogEntry.getAudioPath().isEmpty()) {
                     if (DialogManager.isAudioFinished()) {
@@ -743,11 +748,11 @@ public class DialogScreen extends Screen {
                         canAutoAdvance = true;
                     }
                 }
-                
+
                 if (canAutoAdvance) {
                     // 停止当前音频（如果有）
                     DialogManager.stopCurrentAudio();
-                    
+
                     DialogManager.getInstance().showNextDialog();
                     // 执行当前对话条目的指令
                     if (dialogEntry.getCommand() != null && !dialogEntry.getCommand().isEmpty()) {
@@ -809,7 +814,7 @@ public class DialogScreen extends Screen {
             // 检查服务端配置和对话条目配置是否允许跳过
             boolean serverAllowsSkip = top.yourzi.dialog.config.ServerConfig.ALLOW_SKIP_DIALOG.get();
             boolean entryAllowsSkip = dialogEntry.isSkipAllowed();
-            
+
             if (serverAllowsSkip && entryAllowsSkip) {
                 if (fastForwardCooldown > 0) {
                     fastForwardCooldown--;
@@ -817,7 +822,7 @@ public class DialogScreen extends Screen {
                     DialogManager.setFastForwardingNext(true);
                     // 停止当前音频播放（快进时不播放音频）
                     DialogManager.stopCurrentAudio();
-                    
+
                     // 执行当前对话条目的指令（如果存在）
                     if (dialogEntry.getCommand() != null && !dialogEntry.getCommand().isEmpty()) {
                         DialogManager.getInstance().executeCommands(this.getMinecraft().player, dialogEntry.getCommands(), this.speakerEntity);
@@ -854,9 +859,9 @@ public class DialogScreen extends Screen {
                     // 允许关闭，显示确认窗口
                     Component confirmMessage = Component.translatable("dialog.ui.confirm_esc");
                     ConfirmScreen confirmScreen = new ConfirmScreen(
-                        this::confirmCloseDialogWithSkip,
-                        Component.translatable("dialog.ui.esc"),
-                        confirmMessage
+                            this::confirmCloseDialogWithSkip,
+                            Component.translatable("dialog.ui.esc"),
+                            confirmMessage
                     );
                     this.minecraft.setScreen(confirmScreen);
                     return true; // 事件已处理
@@ -877,7 +882,7 @@ public class DialogScreen extends Screen {
             }
             // 停止当前音频播放
             DialogManager.stopCurrentAudio();
-            
+
             if (dialogEntry.getCommand() != null && !dialogEntry.getCommand().isEmpty()) {
                 DialogManager.getInstance().executeCommands(this.getMinecraft().player, dialogEntry.getCommands(), this.speakerEntity);
             }
@@ -893,7 +898,7 @@ public class DialogScreen extends Screen {
             }
             // 停止当前音频播放
             DialogManager.stopCurrentAudio();
-            
+
             textFullyDisplayed = true;
             currentCharIndex = dialogEntry.getText(playerName).getString().length();
             lastCharTime = System.currentTimeMillis();
@@ -923,14 +928,14 @@ public class DialogScreen extends Screen {
     private void executeRemainingCommandsAndClose() {
         // 获取当前条目之后的所有条目
         List<DialogEntry> remainingEntries = dialogSequence.getRemainingEntries(dialogEntry);
-        
+
         // 执行所有后续条目中的指令
         for (DialogEntry entry : remainingEntries) {
             if (entry.getCommands() != null && !entry.getCommands().isEmpty()) {
                 DialogManager.getInstance().executeCommands(this.getMinecraft().player, entry.getCommands(), this.speakerEntity);
             }
         }
-        
+
         // 关闭对话界面
         this.onClose();
     }
@@ -976,7 +981,7 @@ public class DialogScreen extends Screen {
                 }
             }
         }
-        
+
         // 如果没有显示历史记录且没有 widget 处理点击事件，
         // 则检查是否点击了对话框区域以推进文本/对话。
         if (!showingHistory) {
@@ -1027,7 +1032,7 @@ public class DialogScreen extends Screen {
             this.autoPlayButton.setMessage(Component.literal(DialogManager.isAutoPlaying() ? "⏸" : "▶"));
         }
     }
-    
+
     /**
      * 播放历史记录中的音频
      */
@@ -1037,25 +1042,25 @@ public class DialogScreen extends Screen {
             Minecraft.getInstance().getSoundManager().stop(currentHistoryAudio);
             currentHistoryAudio = null;
         }
-        
+
         // 播放新的音频
         if (entry.getAudioPath() != null && !entry.getAudioPath().isEmpty()) {
             try {
                 // 移除.ogg后缀（如果存在）
                 String soundName = entry.getAudioPath().replace(".ogg", "");
-                
+
                 // 构建音频资源位置 - 使用sounds.json中定义的音频事件名称
                 ResourceLocation audioLocation = new ResourceLocation(Dialog.MODID, soundName);
-                
+
                 // 创建音频实例并播放（与DialogManager中的方式保持一致）
                 currentHistoryAudio = SimpleSoundInstance.forUI(
-                    SoundEvent.createVariableRangeEvent(audioLocation),
-                    1.0f, // volume
-                    1.0f  // pitch
+                        SoundEvent.createVariableRangeEvent(audioLocation),
+                        1.0f, // volume
+                        1.0f  // pitch
                 );
-                
+
                 Minecraft.getInstance().getSoundManager().play(currentHistoryAudio);
-                
+
             } catch (Exception e) {
                 Dialog.LOGGER.error("Failed to play history audio: " + entry.getAudioPath(), e);
             }
@@ -1105,7 +1110,7 @@ public class DialogScreen extends Screen {
         if (this.closeHistoryButton.isMouseOver(mouseX, mouseY)) {
             guiGraphics.renderTooltip(this.font, Component.translatable("dialog.ui.close_history"), mouseX, mouseY);
         }
-        
+
         // 渲染背景
         guiGraphics.fill(0, 0, this.width, this.height, 0xCC000000); // 半透明黑色背景
 
@@ -1162,10 +1167,10 @@ public class DialogScreen extends Screen {
 
         // 渲染实际可见内容
         currentY = historyAreaTopY - historyScrollOffset; // 应用滚动偏移
-        
+
         // 清空之前的音频按钮
         historyAudioButtons.clear();
-        
+
         int entryIndex = 0;
         for (DialogEntry entry : historyEntries) {
 
@@ -1237,28 +1242,28 @@ public class DialogScreen extends Screen {
                 entryHeight += extraEmptyLineHeight;
             }
             // 如果条目的任何部分在可视区域之上，并且其结束部分在可视区域之下，则认为该条目是（部分）可见的
-            
+
             // 如果条目有音频配置，创建播放按钮
             if (entry.getAudioPath() != null && !entry.getAudioPath().isEmpty()) {
                 int buttonSize = 12;
                 int buttonX = textPaddingLeft - buttonSize - 5; // 在文本左侧
                 int buttonY = entryStartY + (entryHeight - buttonSize) / 2 - 4; // 垂直居中
-                
+
                 // 只有当按钮在可视区域内时才添加
                 if (buttonY + buttonSize > historyAreaTopY && buttonY < historyAreaBottomY) {
                     historyAudioButtons.add(new HistoryAudioButton(entry, buttonX, buttonY, buttonSize, buttonSize, entryIndex));
                 }
             }
-            
+
             entryIndex++;
         }
-        
+
         // 渲染音频播放按钮
         for (HistoryAudioButton button : historyAudioButtons) {
             // 绘制按钮背景
             int buttonColor = button.isMouseOver(mouseX, mouseY) ? 0xFF555555 : 0xFF333333;
             guiGraphics.fill(button.x, button.y, button.x + button.width, button.y + button.height, buttonColor);
-            
+
             // 绘制播放图标
             String playIcon = "🔈";
             int iconX = button.x + (button.width - font.width(playIcon)) / 2;
@@ -1387,10 +1392,10 @@ public class DialogScreen extends Screen {
     private void renderBackgroundImage(GuiGraphics guiGraphics, BackgroundImageDisplayData bgData) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, bgData.imageLocation);
-        
+
         // 计算基于动画类型的透明度
         float alpha = 1.0F;
-        
+
         // 优先处理关闭时的淡出效果
         if (isClosing && backgroundFadeOutStartTime > 0) {
             // 淡出阶段：从1到0
@@ -1417,7 +1422,7 @@ public class DialogScreen extends Screen {
                     break;
             }
         }
-        
+
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -1427,7 +1432,7 @@ public class DialogScreen extends Screen {
         int imgWidth = bgData.imageWidth;
         int imgHeight = bgData.imageHeight;
 
-        BackgroundRenderOption renderOption = bgData.renderOption!= null? bgData.renderOption : BackgroundRenderOption.FILL;
+        BackgroundRenderOption renderOption = bgData.renderOption != null ? bgData.renderOption : BackgroundRenderOption.FILL;
 
         switch (renderOption) {
             case FILL:
@@ -1481,13 +1486,13 @@ public class DialogScreen extends Screen {
         }
         RenderSystem.disableBlend();
     }
-    
+
     // 历史记录音频播放按钮类
     private static class HistoryAudioButton {
         public final DialogEntry entry;
         public final int x, y, width, height;
         public final int entryIndex;
-        
+
         public HistoryAudioButton(DialogEntry entry, int x, int y, int width, int height, int entryIndex) {
             this.entry = entry;
             this.x = x;
@@ -1496,7 +1501,7 @@ public class DialogScreen extends Screen {
             this.height = height;
             this.entryIndex = entryIndex;
         }
-        
+
         public boolean isMouseOver(double mouseX, double mouseY) {
             return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
         }

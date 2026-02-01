@@ -601,7 +601,7 @@ public class DialogScreen extends Screen {
                             break;
                         case INLINE:
                             baseX = dialogBoxX - dialogBoxHeight;
-                            baseY = dialogBoxY;
+                            baseY = dialogBoxY - 16;
                             break;
                         case CENTER:
                         default:
@@ -622,9 +622,11 @@ public class DialogScreen extends Screen {
 
         // 渲染对话框背景
         String backgroundImagePath = "textures/dialog_background/background.png";
+        String nameImagePath = "textures/dialog_background/name.png";
         if (backgroundImagePath != null && !backgroundImagePath.isEmpty()) {
             try {
                 ResourceLocation dialogBgRl = new ResourceLocation(Dialog.MODID, backgroundImagePath);
+                ResourceLocation nameRl = new ResourceLocation(Dialog.MODID, nameImagePath);
 
                 RenderSystem.setShader(GameRenderer::getPositionTexShader); // 确保使用正确的着色器
                 RenderSystem.setShaderTexture(0, dialogBgRl); // 绑定纹理
@@ -634,7 +636,9 @@ public class DialogScreen extends Screen {
 
                 // 将图片拉伸至对话框大小进行渲染
                 guiGraphics.blit(dialogBgRl, dialogBoxX, dialogBoxY, 0, 0.0F, 0.0F, dialogBoxWidth, dialogBoxHeight, dialogBoxWidth, dialogBoxHeight);
-
+                int namePlateHeight = 16;
+                int namePlateWidth = 75;
+                guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
                 RenderSystem.disableBlend(); // 绘制完毕后禁用混合
             } catch (Exception e) {
                 Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
@@ -668,8 +672,8 @@ public class DialogScreen extends Screen {
         // 如果显示说话者名称且有说话者
         Component speakerComponent = dialogEntry.getSpeaker(playerName);
         if (top.yourzi.dialog.config.ClientConfig.SHOW_SPEAKER_NAME.get() && speakerComponent != null && !speakerComponent.getString().isEmpty()) {
-            guiGraphics.drawString(font, speakerComponent, textX, textY, 0xFFFFFF);
-            textY += font.lineHeight + 5;
+            int nameOffset = ((75 / 2) - (this.font.width(speakerComponent) / 2)) ;
+            guiGraphics.drawString(font, speakerComponent, dialogBoxX - dialogBoxHeight + 12 + nameOffset, dialogBoxY + dialogBoxHeight - 16, 0xFFFFFF);
         }
 
         // 渲染对话文本

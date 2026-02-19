@@ -529,7 +529,46 @@ public class DialogScreen extends Screen {
             this.closeHistoryButton.render(guiGraphics, mouseX, mouseY, partialTicks);
             return; // 不渲染对话框和立绘
         }
+        // 渲染对话框背景
+        String backgroundImagePath = "textures/dialog_background/background.png";
+        String nameImagePath = "textures/dialog_background/name.png";
+        String frameImagePath = "textures/dialog_background/portrait_frame.png";
+        if (backgroundImagePath != null && !backgroundImagePath.isEmpty()) {
+            try {
+                ResourceLocation dialogBgRl = new ResourceLocation(Dialog.MODID, backgroundImagePath);
+                ResourceLocation nameRl = new ResourceLocation(Dialog.MODID, nameImagePath);
+                ResourceLocation frameRl = new ResourceLocation(Dialog.MODID, frameImagePath);
 
+                RenderSystem.setShader(GameRenderer::getPositionTexShader); // 确保使用正确的着色器
+                RenderSystem.setShaderTexture(0, dialogBgRl); // 绑定纹理
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 重置颜色，确保图片不受先前渲染影响
+                RenderSystem.enableBlend(); // 为透明图片启用混合
+                RenderSystem.defaultBlendFunc(); // 使用默认混合函数
+
+                // 将图片拉伸至对话框大小进行渲染
+                guiGraphics.blit(dialogBgRl, dialogBoxX, dialogBoxY, 0, 0.0F, 0.0F, dialogBoxWidth, dialogBoxHeight, dialogBoxWidth, dialogBoxHeight);
+                int namePlateHeight = 16;
+                int namePlateWidth = 77;
+                int portraitFrameHeight = 67;
+                int portraitFrameWidth = 70;
+                guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
+                guiGraphics.blit(frameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - portraitFrameHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, portraitFrameWidth, portraitFrameHeight, portraitFrameWidth, portraitFrameHeight);
+                RenderSystem.disableBlend(); // 绘制完毕后禁用混合
+            } catch (Exception e) {
+                Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
+                // 回退到纯色背景
+                int backgroundColor = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_COLOR.get();
+                int opacity = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_OPACITY.get();
+                int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
+                guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
+            }
+        } else {
+
+            int backgroundColor = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_COLOR.get();
+            int opacity = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_OPACITY.get();
+            int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
+            guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
+        }
         // 渲染立绘
         if (!portraitDisplayList.isEmpty()) {
             for (PortraitDisplayData displayData : portraitDisplayList) {
@@ -600,8 +639,8 @@ public class DialogScreen extends Screen {
                             baseY = this.height - scaledHeight;
                             break;
                         case INLINE:
-                            baseX = dialogBoxX - dialogBoxHeight;
-                            baseY = dialogBoxY - 16;
+                            baseX = dialogBoxX - dialogBoxHeight + 9;
+                            baseY = dialogBoxY - 12;
                             break;
                         case CENTER:
                         default:
@@ -613,47 +652,11 @@ public class DialogScreen extends Screen {
                     int finalX = baseX + (int) xOffset;
                     int finalY = baseY + (int) yOffset;
 
-                    guiGraphics.blit(displayData.resourceLocation, finalX, finalY, 0, 0, dialogBoxHeight, dialogBoxHeight, dialogBoxHeight, dialogBoxHeight);
+                    guiGraphics.blit(displayData.resourceLocation, finalX, finalY, 0, 0, 64, 64, 64, 64);
                     RenderSystem.disableBlend();
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 重置颜色
                 }
             }
-        }
-
-        // 渲染对话框背景
-        String backgroundImagePath = "textures/dialog_background/background.png";
-        String nameImagePath = "textures/dialog_background/name.png";
-        if (backgroundImagePath != null && !backgroundImagePath.isEmpty()) {
-            try {
-                ResourceLocation dialogBgRl = new ResourceLocation(Dialog.MODID, backgroundImagePath);
-                ResourceLocation nameRl = new ResourceLocation(Dialog.MODID, nameImagePath);
-
-                RenderSystem.setShader(GameRenderer::getPositionTexShader); // 确保使用正确的着色器
-                RenderSystem.setShaderTexture(0, dialogBgRl); // 绑定纹理
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 重置颜色，确保图片不受先前渲染影响
-                RenderSystem.enableBlend(); // 为透明图片启用混合
-                RenderSystem.defaultBlendFunc(); // 使用默认混合函数
-
-                // 将图片拉伸至对话框大小进行渲染
-                guiGraphics.blit(dialogBgRl, dialogBoxX, dialogBoxY, 0, 0.0F, 0.0F, dialogBoxWidth, dialogBoxHeight, dialogBoxWidth, dialogBoxHeight);
-                int namePlateHeight = 16;
-                int namePlateWidth = 75;
-                guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
-                RenderSystem.disableBlend(); // 绘制完毕后禁用混合
-            } catch (Exception e) {
-                Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
-                // 回退到纯色背景
-                int backgroundColor = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_COLOR.get();
-                int opacity = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_OPACITY.get();
-                int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
-                guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
-            }
-        } else {
-
-            int backgroundColor = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_COLOR.get();
-            int opacity = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_OPACITY.get();
-            int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
-            guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
         }
 
         // 如果自动播放开启且无选项，显示提示
@@ -672,7 +675,7 @@ public class DialogScreen extends Screen {
         // 如果显示说话者名称且有说话者
         Component speakerComponent = dialogEntry.getSpeaker(playerName);
         if (top.yourzi.dialog.config.ClientConfig.SHOW_SPEAKER_NAME.get() && speakerComponent != null && !speakerComponent.getString().isEmpty()) {
-            int nameOffset = ((75 / 2) - (this.font.width(speakerComponent) / 2)) ;
+            int nameOffset = ((64 / 2) - (this.font.width(speakerComponent) / 2)) - 2;
             guiGraphics.drawString(font, speakerComponent, dialogBoxX - dialogBoxHeight + 12 + nameOffset, dialogBoxY + dialogBoxHeight - 16, 0xFFFFFF);
         }
 

@@ -6,5 +6,6 @@ package top.yourzi.dialog.model;
 public enum PortraitPosition {
     LEFT,
     CENTER,
-    RIGHT
+    RIGHT,
+    INLINE
 }

@@ -1,5 +1,5 @@
 {
-  "id": "test_dialog",
+  "id": "inline_dialog",
   "title": "Test Dialog",
   "description": "A test dialog sequence to showcase the features of the dialog system.",
   "start": "start",
@@ -14,7 +14,7 @@
         }
       ],
       "portraits": [
-        {"path": "tlipoca.png", "position": "RIGHT", "brightness": 1.0, "animationType": "FADE_IN"}
+        {"path": "tlipoca_square.png", "position": "INLINE", "brightness": 1.0, "animationType": "FADE_IN"}
       ]
     },
     {
@@ -22,8 +22,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.leaf", "color": "aqua"},
       "text": {"translate": "dialog.test_dialog.entry.1.text"},
       "portraits": [
-        {"path": "leaf.png", "position": "LEFT", "brightness": 1.0},
-        {"path": "tlipoca.png", "position": "RIGHT", "brightness": 0.5}
+        {"path": "tlipoca_square.png", "position": "INLINE", "brightness": 0.5}
       ],
       "next": "2"
     },
@@ -32,8 +31,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.2.text"},
       "portraits": [
-        {"path": "leaf.png", "position": "LEFT", "brightness": 0.5},
-        {"path": "tlipoca.png", "position": "RIGHT", "brightness": 1.0}
+        {"path": "tlipoca_square.png", "position": "INLINE", "brightness": 1.0}
       ]
     },
     {
@@ -55,8 +53,7 @@
         {"translate": "dialog.test_dialog.entry.3.text.9"}
       ],
       "portraits": [
-        {"path": "leaf.png", "position": "LEFT", "brightness": 1.0},
-        {"path": "tlipoca.png", "position": "RIGHT", "brightness": 0.5}
+        {"path": "tlipoca_square.png", "position": "INLINE", "brightness": 0.5}
       ]
     },
     {
@@ -64,8 +61,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.4.text"},
       "portraits": [
-        {"path": "leaf.png", "position": "LEFT", "brightness": 0.5},
-        {"path": "tlipoca.png", "position": "RIGHT", "brightness": 1.0}
+        {"path": "tlipoca_square.png", "position": "INLINE", "brightness": 1.0}
       ]
     },
     {
@@ -73,7 +69,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.5.text"},
       "portraits": [
-        {"path": "tlipoca_1.png", "position": "CENTER", "brightness": 1.0, "animationType": "FADE_IN"}
+        {"path": "tlipoca_square.png", "position": "CENTER", "brightness": 1.0, "animationType": "FADE_IN"}
       ]
     },
     {
@@ -81,7 +77,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.6.text"},
       "portraits": [
-        {"path": "tlipoca.png", "position": "CENTER", "brightness": 1.0, "animationType": "SLIDE_IN_FROM_BOTTOM"}
+        {"path": "tlipoca_square.png", "position": "CENTER", "brightness": 1.0, "animationType": "SLIDE_IN_FROM_BOTTOM"}
       ]
     },
     {
@@ -89,7 +85,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.7.text"},
       "portraits": [
-        {"path": "tlipoca_2.png", "position": "CENTER", "animationType": "BOUNCE"}
+        {"path": "tlipoca_square.png", "position": "CENTER", "animationType": "BOUNCE"}
       ]
     },
     {
@@ -97,7 +93,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.8.text"},
       "portraits": [
-        {"path": "tlipoca.png", "animationType": "FADE_IN"}
+        {"path": "tlipoca_square.png", "animationType": "FADE_IN"}
       ],
       "options": [
         {
@@ -120,7 +116,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.more_info.text"},
       "portraits": [
-        {"path": "tlipoca_1.png"}
+        {"path": "tlipoca_square.png"}
       ]
     },
     {
@@ -128,7 +124,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.command.text"},
       "portraits": [
-        {"path": "tlipoca_1.png"}
+        {"path": "tlipoca_square.png"}
       ],
       "options": [
         {
@@ -153,7 +149,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.item.text"},
       "portraits": [
-        {"path": "tlipoca.png"}
+        {"path": "tlipoca_square.png"}
       ],
       "display_items":[
         {
@@ -172,7 +168,7 @@
       "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
       "text": {"translate": "dialog.test_dialog.entry.background_cg.text"},
       "portraits": [
-        {"path": "tlipoca.png"}
+        {"path": "tlipoca_square.png"}
       ],
       "background_image": {
         "path": "background.png"
@@ -185,7 +181,7 @@
       "visibility_command": "execute if entity @s[gamemode=survival]",
       "text": {"translate": "dialog.test_dialog.entry.hidden_entry.text"},
       "portraits": [
-        {"path": "tlipoca_1.png"}
+        {"path": "tlipoca_square.png"}
       ]
     },
   {
@@ -193,7 +189,7 @@
     "speaker": {"translate": "dialog.test_dialog.speaker.tlipoca", "color": "red"},
     "text": {"translate": "dialog.test_dialog.entry.end.text"},
     "portraits": [
-      {"path": "tlipoca.png"}
+      {"path": "tlipoca_square.png"}
     ]
   }
   ]

@@ -326,7 +326,7 @@ public class DialogScreen extends Screen {
         // 设置对话框位置和大小
         dialogBoxWidth = Config.DIALOG_BOX_WIDTH.get();
         dialogBoxHeight = Config.DIALOG_BOX_HEIGHT.get();
-        dialogBoxX = (width - dialogBoxWidth) / 2;
+        dialogBoxX = dialogBoxX = ((width - dialogBoxWidth) / 2) + Config.DIALOG_BOX_X_OFFSET.get();
         dialogBoxY = height - dialogBoxHeight - 20;
 
         // 初始化查看历史按钮 (位于对话框右下角)
@@ -462,8 +462,46 @@ public class DialogScreen extends Screen {
             this.closeHistoryButton.render(guiGraphics, mouseX, mouseY, partialTicks);
             return; // 不渲染对话框和立绘
         }
+        // 渲染对话框背景
+        String backgroundImagePath = "textures/dialog_background/background.png";
+        String nameImagePath = "textures/dialog_background/name.png";
+        String frameImagePath = "textures/dialog_background/portrait_frame.png";
+        if (backgroundImagePath != null && !backgroundImagePath.isEmpty()) {
+            try {
+                ResourceLocation dialogBgRl = ResourceLocation.fromNamespaceAndPath(Dialog.MODID, backgroundImagePath);
+                ResourceLocation nameRl = ResourceLocation.fromNamespaceAndPath(Dialog.MODID, nameImagePath);
+                ResourceLocation frameRl = ResourceLocation.fromNamespaceAndPath(Dialog.MODID, frameImagePath);
 
+                RenderSystem.setShader(GameRenderer::getPositionTexShader); // 确保使用正确的着色器
+                RenderSystem.setShaderTexture(0, dialogBgRl); // 绑定纹理
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 重置颜色，确保图片不受先前渲染影响
+                RenderSystem.enableBlend(); // 为透明图片启用混合
+                RenderSystem.defaultBlendFunc(); // 使用默认混合函数
 
+                // 将图片拉伸至对话框大小进行渲染
+                guiGraphics.blit(dialogBgRl, dialogBoxX, dialogBoxY, 0, 0.0F, 0.0F, dialogBoxWidth, dialogBoxHeight, dialogBoxWidth, dialogBoxHeight);
+                int namePlateHeight = 16;
+                int namePlateWidth = 77;
+                int portraitFrameHeight = 67;
+                int portraitFrameWidth = 70;
+                guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
+                guiGraphics.blit(frameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - portraitFrameHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, portraitFrameWidth, portraitFrameHeight, portraitFrameWidth, portraitFrameHeight);
+                RenderSystem.disableBlend(); // 绘制完毕后禁用混合
+            } catch (Exception e) {
+                Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
+                // 回退到纯色背景
+                int backgroundColor = Config.DIALOG_BACKGROUND_COLOR.get();
+                int opacity = Config.DIALOG_BACKGROUND_OPACITY.get();
+                int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
+                guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
+            }
+        } else {
+
+            int backgroundColor = Config.DIALOG_BACKGROUND_COLOR.get();
+            int opacity = Config.DIALOG_BACKGROUND_OPACITY.get();
+            int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
+            guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
+        }
         // 渲染立绘
         if (!portraitDisplayList.isEmpty()) {
             for (PortraitDisplayData displayData : portraitDisplayList) {
@@ -533,6 +571,10 @@ public class DialogScreen extends Screen {
                             baseX = this.width - scaledWidth - 20;
                             baseY = this.height - scaledHeight;
                             break;
+                        case INLINE:
+                            baseX = dialogBoxX - dialogBoxHeight + 9;
+                            baseY = dialogBoxY - 12;
+                            break;
                         case CENTER:
                         default:
                             baseX = (this.width - scaledWidth) / 2;
@@ -543,45 +585,13 @@ public class DialogScreen extends Screen {
                     int finalX = baseX + (int)xOffset;
                     int finalY = baseY + (int)yOffset;
 
-                    guiGraphics.blit(displayData.resourceLocation, finalX, finalY, 0, 0, scaledWidth, scaledHeight, scaledWidth, scaledHeight);
+                    guiGraphics.blit(displayData.resourceLocation, finalX, finalY, 0, 0, 64, 64, 64, 64);
                     RenderSystem.disableBlend();
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 重置颜色
                 }
             }
         }
-
-        // 渲染对话框背景
-        String backgroundImagePath = "textures/dialog_background/background.png";
-        if (backgroundImagePath != null && !backgroundImagePath.isEmpty()) {
-            try {
-                ResourceLocation dialogBgRl = ResourceLocation.fromNamespaceAndPath(Dialog.MODID, backgroundImagePath);
-                
-                RenderSystem.setShader(GameRenderer::getPositionTexShader); // 确保使用正确的着色器
-                RenderSystem.setShaderTexture(0, dialogBgRl); // 绑定纹理
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 重置颜色，确保图片不受先前渲染影响
-                RenderSystem.enableBlend(); // 为透明图片启用混合
-                RenderSystem.defaultBlendFunc(); // 使用默认混合函数
-
-                // 将图片拉伸至对话框大小进行渲染
-                guiGraphics.blit(dialogBgRl, dialogBoxX, dialogBoxY, 0, 0.0F, 0.0F, dialogBoxWidth, dialogBoxHeight, dialogBoxWidth, dialogBoxHeight);
-                
-                RenderSystem.disableBlend(); // 绘制完毕后禁用混合
-            } catch (Exception e) {
-                Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
-                // 回退到纯色背景
-                int backgroundColor = Config.DIALOG_BACKGROUND_COLOR.get();
-                int opacity = Config.DIALOG_BACKGROUND_OPACITY.get();
-                int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
-                guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
-            }
-        } else {
-
-            int backgroundColor = Config.DIALOG_BACKGROUND_COLOR.get();
-            int opacity = Config.DIALOG_BACKGROUND_OPACITY.get();
-            int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
-            guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
-        }
-
+        
         // 如果自动播放开启且无选项，显示提示
         if (DialogManager.isAutoPlaying() && !dialogEntry.hasOptions()) {
             Component autoPlayText = Component.literal("[AUTO]");
@@ -589,19 +599,19 @@ public class DialogScreen extends Screen {
             // 将提示显示在对话框的右上角外部一点或者左上角，避免遮挡按钮
             guiGraphics.drawString(this.font, autoPlayText, dialogBoxX + dialogBoxWidth - autoPlayTextWidth - 5, dialogBoxY - 15, 0xFFFFFF);
         }
-        
+
         // 渲染对话文本
         int padding = Config.DIALOG_BOX_PADDING.get();
         int textX = dialogBoxX + padding;
         int textY = dialogBoxY + padding;
-        
+
         // 如果显示说话者名称且有说话者
         Component speakerComponent = dialogEntry.getSpeaker(Minecraft.getInstance().level.registryAccess(), playerName);
         if (Config.SHOW_SPEAKER_NAME.get() && speakerComponent != null && !speakerComponent.getString().isEmpty()) {
-            guiGraphics.drawString(font, Component.literal("[").append(speakerComponent).append("]"), textX, textY, 0xFFFFFF);
-            textY += font.lineHeight + 5;
+            int nameOffset = ((64 / 2) - (this.font.width(speakerComponent) / 2)) - 2;
+            guiGraphics.drawString(font, speakerComponent, dialogBoxX - dialogBoxHeight + 12 + nameOffset, dialogBoxY + dialogBoxHeight - 16, 0xFFFFFF);
         }
-        
+
         // 渲染对话文本
         String rawText = dialogEntry.getText(Minecraft.getInstance().level.registryAccess(), playerName).getString();
         if (rawText != null && !rawText.isEmpty()) {
@@ -620,7 +630,7 @@ public class DialogScreen extends Screen {
                 }
                 // 计算每字符间隔时间 (毫秒)
                 long charInterval = (textAnimationSpeed > 0) ? (1000 / textAnimationSpeed) : 0;
-                
+
                 if (currentTime - lastCharTime >= charInterval) {
                     currentCharIndex++;
                     lastCharTime = currentTime;
@@ -637,23 +647,23 @@ public class DialogScreen extends Screen {
                 int itemSize = 16;
                 int itemPadding = 4;
                 int totalItemWidth = (this.displayItemStacks.size() * itemSize) + (Math.max(0, this.displayItemStacks.size() - 1) * itemPadding);
-            
+
                 int startX = dialogBoxX + (dialogBoxWidth - totalItemWidth) / 2;
                 int itemY = dialogBoxY - itemSize - 5;
-            
+
                 for (ItemStack itemStack : this.displayItemStacks) {
-            
+
                     guiGraphics.renderItem(itemStack, startX, itemY);
-            
+
                     if (mouseX >= startX && mouseX < startX + itemSize && mouseY >= itemY && mouseY < itemY + itemSize) {
                         guiGraphics.fill(startX, itemY, startX + itemSize, itemY + itemSize, 0x80000000);
                     }
-            
+
                     guiGraphics.renderItemDecorations(this.font, itemStack, startX, itemY);
-            
+
                     startX += itemSize + itemPadding;
                 }
-            
+
                 startX = dialogBoxX + (dialogBoxWidth - totalItemWidth) / 2;
                 for (ItemStack itemStack : this.displayItemStacks) {
                     if (mouseX >= startX && mouseX < startX + itemSize && mouseY >= itemY && mouseY < itemY + itemSize) {

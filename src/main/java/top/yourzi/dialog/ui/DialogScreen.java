@@ -1,47 +1,39 @@
 package top.yourzi.dialog.ui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import org.lwjgl.glfw.GLFW;
 import top.yourzi.dialog.Config;
 import top.yourzi.dialog.Dialog;
 import top.yourzi.dialog.DialogManager;
-import top.yourzi.dialog.model.BackgroundImageInfo;
-import top.yourzi.dialog.model.BackgroundRenderOption;
-import top.yourzi.dialog.model.DialogEntry;
-import top.yourzi.dialog.model.DialogOption;
-import top.yourzi.dialog.model.DialogSequence;
-import top.yourzi.dialog.model.PortraitAnimationType;
-import top.yourzi.dialog.model.PortraitPosition;
-import org.lwjgl.glfw.GLFW;
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.packs.resources.Resource;
+import top.yourzi.dialog.model.*;
+import top.yourzi.dialog.util.STBBackendImage;
 
-import java.util.HashMap;
-import java.util.Optional;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.WidgetSprites;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import net.minecraft.client.gui.screens.ConfirmScreen;
-import top.yourzi.dialog.util.STBBackendImage;
+import java.util.Optional;
 
 /**
  * 对话界面，用于显示对话框和立绘
@@ -183,8 +175,6 @@ public class DialogScreen extends Screen {
                     Dialog.LOGGER.warn("Encountered a portrait info with null or empty path.");
                 }
             }
-        } else {
-            Dialog.LOGGER.warn("No portrait configurations found in DialogEntry or the list is empty.");
         }
 
                 // 加载需要在对话中显示的物品
@@ -238,7 +228,7 @@ public class DialogScreen extends Screen {
             private long fadeInStartTime = -1;
             private long fadeOutStartTime = -1;
             public static final int FADE_DURATION_MS = 500; // 淡入淡出持续时间，0.5秒
-    
+
             public BackgroundImageDisplayData(BackgroundImageInfo backgroundImageInfo) {
                 this.imageLocation = ResourceLocation.fromNamespaceAndPath(Dialog.MODID, "textures/backgrounds/" + backgroundImageInfo.getPath());
                 this.renderOption = backgroundImageInfo.getRenderOption();
@@ -248,26 +238,26 @@ public class DialogScreen extends Screen {
                     startFadeIn();
                 }
             }
-            
+
             // 开始淡入动画
             public void startFadeIn() {
                 this.fadeInStarted = true;
                 this.fadeOutStarted = false;
                 this.fadeInStartTime = System.currentTimeMillis();
             }
-            
+
             // 开始淡出动画
             public void startFadeOut() {
                 this.fadeOutStarted = true;
                 this.fadeInStarted = false;
                 this.fadeOutStartTime = System.currentTimeMillis();
             }
-            
+
             // 获取当前透明度
             public float getCurrentAlpha() {
                 long currentTime = System.currentTimeMillis();
                 float alpha = 1.0f;
-                
+
                 if (fadeInStarted && fadeInStartTime != -1) {
                     long elapsedTime = currentTime - fadeInStartTime;
                     if (elapsedTime < FADE_DURATION_MS) {
@@ -288,10 +278,10 @@ public class DialogScreen extends Screen {
                         alpha = 0.0f;
                     }
                 }
-                
+
                 return alpha;
             }
-    
+
             private void loadResource() {
                 try {
                     Optional<Resource> resourceOptional = Minecraft.getInstance().getResourceManager().getResource(imageLocation);
@@ -311,7 +301,7 @@ public class DialogScreen extends Screen {
                     Dialog.LOGGER.error("Error accessing background image resource: {}", imageLocation, e);
                 }
             }
-    
+
             public void close() {
                 if (image != null) {
                     image.close();
@@ -322,11 +312,11 @@ public class DialogScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        
+
         // 设置对话框位置和大小
         dialogBoxWidth = Config.DIALOG_BOX_WIDTH.get();
         dialogBoxHeight = Config.DIALOG_BOX_HEIGHT.get();
-        dialogBoxX = dialogBoxX = ((width - dialogBoxWidth) / 2) + Config.DIALOG_BOX_X_OFFSET.get();
+        dialogBoxX =  ((width - dialogBoxWidth) / 2) + Config.DIALOG_BOX_X_OFFSET.get() + (portraitDisplayList.isEmpty() ? -30 : 0);
         dialogBoxY = height - dialogBoxHeight - 20;
 
         // 初始化查看历史按钮 (位于对话框右下角)
@@ -335,8 +325,8 @@ public class DialogScreen extends Screen {
         int historyButtonPadding = 5;
         this.viewHistoryButton = Button.builder(Component.literal("▲"), (button) -> {
             toggleHistoryScreen();
-        }).bounds(dialogBoxX + dialogBoxWidth - historyButtonWidth - historyButtonPadding, 
-                  dialogBoxY + dialogBoxHeight - historyButtonHeight - historyButtonPadding, 
+        }).bounds(dialogBoxX + dialogBoxWidth - historyButtonWidth - historyButtonPadding,
+                  dialogBoxY + dialogBoxHeight - historyButtonHeight - historyButtonPadding,
                   historyButtonWidth, historyButtonHeight).build();
         this.addRenderableWidget(this.viewHistoryButton);
 
@@ -345,12 +335,12 @@ public class DialogScreen extends Screen {
         int autoPlayButtonHeight = 20;
         this.autoPlayButton = Button.builder(Component.literal("▶"), (button) -> {
             toggleAutoPlay();
-        }).bounds(dialogBoxX + dialogBoxWidth - historyButtonWidth - historyButtonPadding - autoPlayButtonWidth - historyButtonPadding, 
-                  dialogBoxY + dialogBoxHeight - autoPlayButtonHeight - historyButtonPadding, 
+        }).bounds(dialogBoxX + dialogBoxWidth - historyButtonWidth - historyButtonPadding - autoPlayButtonWidth - historyButtonPadding,
+                  dialogBoxY + dialogBoxHeight - autoPlayButtonHeight - historyButtonPadding,
                   autoPlayButtonWidth, autoPlayButtonHeight).build();
         this.addRenderableWidget(this.autoPlayButton);
         updateAutoPlayButtonText(); // 初始化按钮文本
-        
+
         // 如果此对话条目有选项，预先停止自动播放
         if (dialogEntry.hasOptions()) {
             if (DialogManager.isAutoPlaying()) {
@@ -366,18 +356,18 @@ public class DialogScreen extends Screen {
         }).bounds(this.width / 2 - 50, this.height - 30, 100, 20).build();
 
     }
-    
+
     /**
      * 创建对话选项按钮
      */
     private void createOptionButtons() {
         optionButtons.clear();
-        
+
         DialogOption[] options = dialogEntry.getOptions();
         if (options == null || options.length == 0) {
             return;
         }
-        
+
         int buttonWidth = 200;
         int buttonHeight = 20;
         WidgetSprites sprites;
@@ -390,7 +380,7 @@ public class DialogScreen extends Screen {
 
         sprites = new WidgetSprites(
             buttonTexture,           // enabled
-            buttonDisabledTexture,   // disabled  
+            buttonDisabledTexture,   // disabled
             buttonHighlightTexture,  // highlighted
             buttonHighlightTexture   // focused
             );
@@ -404,7 +394,7 @@ public class DialogScreen extends Screen {
 
         sprites = new WidgetSprites(
             buttonTexture,           // enabled
-            buttonDisabledTexture,   // disabled  
+            buttonDisabledTexture,   // disabled
             buttonHighlightTexture,  // highlighted
             buttonHighlightTexture   // focused
             );
@@ -419,7 +409,7 @@ public class DialogScreen extends Screen {
         for (int i = 0; i < options.length; i++) {
             DialogOption option = options[i];
             int buttonY = startY + i * (buttonHeight + buttonSpacing);
-            
+
             OptionButton button = new OptionButton(
                     (width - buttonWidth) / 2, // x
                     buttonY,                   // y
@@ -436,12 +426,12 @@ public class DialogScreen extends Screen {
                     },
                     option.getText(Minecraft.getInstance().level.registryAccess(), playerName) // Component message
             );
-            
+
             optionButtons.add(button);
             addRenderableWidget(button);
         }
     }
-    
+
     @Override
     public void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
     //模糊效果也干了
@@ -480,12 +470,14 @@ public class DialogScreen extends Screen {
 
                 // 将图片拉伸至对话框大小进行渲染
                 guiGraphics.blit(dialogBgRl, dialogBoxX, dialogBoxY, 0, 0.0F, 0.0F, dialogBoxWidth, dialogBoxHeight, dialogBoxWidth, dialogBoxHeight);
-                int namePlateHeight = 16;
-                int namePlateWidth = 77;
-                int portraitFrameHeight = 67;
-                int portraitFrameWidth = 70;
-                guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
-                guiGraphics.blit(frameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - portraitFrameHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, portraitFrameWidth, portraitFrameHeight, portraitFrameWidth, portraitFrameHeight);
+                if (!portraitDisplayList.isEmpty()) {
+                    int namePlateHeight = 16;
+                    int namePlateWidth = 77;
+                    int portraitFrameHeight = 67;
+                    int portraitFrameWidth = 70;
+                    guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
+                    guiGraphics.blit(frameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - portraitFrameHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, portraitFrameWidth, portraitFrameHeight, portraitFrameWidth, portraitFrameHeight);
+                }
                 RenderSystem.disableBlend(); // 绘制完毕后禁用混合
             } catch (Exception e) {
                 Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
@@ -591,7 +583,7 @@ public class DialogScreen extends Screen {
                 }
             }
         }
-        
+
         // 如果自动播放开启且无选项，显示提示
         if (DialogManager.isAutoPlaying() && !dialogEntry.hasOptions()) {
             Component autoPlayText = Component.literal("[AUTO]");
@@ -684,7 +676,7 @@ public class DialogScreen extends Screen {
                     return;
                 }
             }
-            
+
             List<net.minecraft.util.FormattedCharSequence> lines;
             if (textFullyDisplayed) {
                 lines = font.split(dialogEntry.getText(Minecraft.getInstance().level.registryAccess(), playerName), maxWidth);
@@ -697,7 +689,7 @@ public class DialogScreen extends Screen {
                     lines = font.split(animatedTextComponent, maxWidth);
                 }
             }
-            
+
             for (net.minecraft.util.FormattedCharSequence line : lines) {
                 guiGraphics.drawString(font, line, textX, textY, Config.DIALOG_TEXT_COLOR.get());
                 textY += font.lineHeight;
@@ -818,7 +810,7 @@ public class DialogScreen extends Screen {
             }
         }
     }
-    
+
     // 使用淡出效果关闭屏幕
     private void closeScreenWithFadeOut() {
         // 在关闭对话框前启动背景图片淡出动画
@@ -847,7 +839,7 @@ public class DialogScreen extends Screen {
             super.onClose();
         }
     }
-    
+
     @Override
     public void onClose() {
         // 使用淡出效果关闭屏幕，而不是直接调用 super.onClose()
@@ -894,7 +886,7 @@ public class DialogScreen extends Screen {
                 }
             }
         }
-        
+
         return false; // 除了 widgets 或对话推进之外没有自定义处理
     }
 
@@ -919,10 +911,10 @@ public class DialogScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        updateAutoPlayButtonText(); 
+        updateAutoPlayButtonText();
 
 
-    
+
         if (this.showingHistory) {
             this.historyEntries = DialogManager.getInstance().getDialogHistory();
             // 禁用主对话界面按钮
@@ -930,7 +922,7 @@ public class DialogScreen extends Screen {
             if (this.viewHistoryButton != null) { // 确保按钮已初始化
                 this.viewHistoryButton.active = false;
             }
-            
+
             // 激活并添加关闭历史按钮
             if (!this.children().contains(this.closeHistoryButton)) {
                  this.addRenderableWidget(this.closeHistoryButton);
@@ -943,12 +935,12 @@ public class DialogScreen extends Screen {
             if (this.viewHistoryButton != null) { // 确保按钮已初始化
                 this.viewHistoryButton.active = true;
             }
-            
+
             // 移除关闭历史按钮
             if (this.children().contains(this.closeHistoryButton)) {
                 this.removeWidget(this.closeHistoryButton);
             }
-            this.closeHistoryButton.active = false; 
+            this.closeHistoryButton.active = false;
         }
     }
 
@@ -1029,7 +1021,7 @@ public class DialogScreen extends Screen {
             } else {
                 lineToRender = dialogText;
             }
-            
+
             int entryStartY = currentY;
             int entryHeight = 0;
 
@@ -1107,14 +1099,14 @@ public class DialogScreen extends Screen {
             int scrollbarWidth = 5;
             int scrollbarX = this.width - textPaddingLeft + 20; // 调整到文本区域右侧
             int scrollbarTrackHeight = historyAreaHeight;
-            
+
             // 滚动条背景
-            guiGraphics.fill(scrollbarX, historyAreaTopY, scrollbarX + scrollbarWidth, historyAreaTopY + scrollbarTrackHeight, 0xFF555555); 
+            guiGraphics.fill(scrollbarX, historyAreaTopY, scrollbarX + scrollbarWidth, historyAreaTopY + scrollbarTrackHeight, 0xFF555555);
 
             float scrollPercentage = (float) historyScrollOffset / (totalHistoryContentHeight - historyAreaHeight);
             int scrollThumbHeight = Math.max(20, (int) ((float) historyAreaHeight / totalHistoryContentHeight * historyAreaHeight));
             int scrollThumbY = historyAreaTopY + (int) (scrollPercentage * (scrollbarTrackHeight - scrollThumbHeight));
-            
+
             guiGraphics.fill(scrollbarX, scrollThumbY, scrollbarX + scrollbarWidth, scrollThumbY + scrollThumbHeight, 0xFFAAAAAA);
         }
     }
@@ -1135,7 +1127,7 @@ public class DialogScreen extends Screen {
     private void renderBackgroundImage(GuiGraphics guiGraphics, BackgroundImageDisplayData bgData) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, bgData.imageLocation);
-        
+
         // 获取当前透明度
         float alpha = bgData.getCurrentAlpha();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);

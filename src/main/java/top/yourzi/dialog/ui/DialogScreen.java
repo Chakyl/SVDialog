@@ -132,10 +132,7 @@ public class DialogScreen extends Screen {
                     Dialog.LOGGER.warn("Encountered a portrait info with null or empty path.");
                 }
             }
-        } else {
-            Dialog.LOGGER.warn("No portrait configurations found in DialogEntry or the list is empty.");
         }
-
         // 加载需要在对话中显示的物品
         if (dialogEntry.getDisplayItems() != null && !dialogEntry.getDisplayItems().isEmpty()) {
             for (top.yourzi.dialog.model.DisplayItemInfo itemInfo : dialogEntry.getDisplayItems()) {
@@ -234,7 +231,7 @@ public class DialogScreen extends Screen {
         // 设置对话框位置和大小
         dialogBoxWidth = top.yourzi.dialog.config.ClientConfig.DIALOG_BOX_WIDTH.get();
         dialogBoxHeight = top.yourzi.dialog.config.ClientConfig.DIALOG_BOX_HEIGHT.get();
-        dialogBoxX = ((width - dialogBoxWidth) / 2) + ClientConfig.DIALOG_BOX_X_OFFSET.get();
+        dialogBoxX = ((width - dialogBoxWidth) / 2) + ClientConfig.DIALOG_BOX_X_OFFSET.get() + (portraitDisplayList.isEmpty() ? -30 : 0);
         dialogBoxY = height - dialogBoxHeight - 20;
 
         // 初始化查看历史按钮 (位于对话框右下角)
@@ -547,12 +544,14 @@ public class DialogScreen extends Screen {
 
                 // 将图片拉伸至对话框大小进行渲染
                 guiGraphics.blit(dialogBgRl, dialogBoxX, dialogBoxY, 0, 0.0F, 0.0F, dialogBoxWidth, dialogBoxHeight, dialogBoxWidth, dialogBoxHeight);
-                int namePlateHeight = 16;
-                int namePlateWidth = 77;
-                int portraitFrameHeight = 67;
-                int portraitFrameWidth = 70;
-                guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
-                guiGraphics.blit(frameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - portraitFrameHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, portraitFrameWidth, portraitFrameHeight, portraitFrameWidth, portraitFrameHeight);
+                if (!portraitDisplayList.isEmpty()) {
+                    int namePlateHeight = 16;
+                    int namePlateWidth = 77;
+                    int portraitFrameHeight = 67;
+                    int portraitFrameWidth = 70;
+                    guiGraphics.blit(nameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, namePlateWidth, namePlateHeight, namePlateWidth, namePlateHeight);
+                    guiGraphics.blit(frameRl, dialogBoxX - dialogBoxHeight + 6, dialogBoxY + dialogBoxHeight - portraitFrameHeight - namePlateHeight - 4, 0, 0.0F, 0.0F, portraitFrameWidth, portraitFrameHeight, portraitFrameWidth, portraitFrameHeight);
+                }
                 RenderSystem.disableBlend(); // 绘制完毕后禁用混合
             } catch (Exception e) {
                 Dialog.LOGGER.error("Failed to render dialog background image: " + backgroundImagePath + ". Falling back to solid color.", e);
@@ -563,7 +562,6 @@ public class DialogScreen extends Screen {
                 guiGraphics.fill(dialogBoxX, dialogBoxY, dialogBoxX + dialogBoxWidth, dialogBoxY + dialogBoxHeight, color);
             }
         } else {
-
             int backgroundColor = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_COLOR.get();
             int opacity = top.yourzi.dialog.config.ClientConfig.DIALOG_BACKGROUND_OPACITY.get();
             int color = (opacity << 24) | (backgroundColor & 0xFFFFFF);
@@ -774,6 +772,13 @@ public class DialogScreen extends Screen {
                 lines = font.split(dialogEntry.getText(playerName), maxWidth);
             } else {
                 String animatedString = rawText.substring(0, Math.min(currentCharIndex, rawText.length()));
+//                if (currentCharIndex % 2 == 0) {
+//                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(
+//                            SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(Dialog.MODID, "type")),
+//                            1f,
+//                            1.0f
+//                    ));
+//                }
                 if (animatedString.isEmpty()) {
                     lines = java.util.Collections.emptyList();
                 } else {

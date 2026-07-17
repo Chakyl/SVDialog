@@ -6,5 +6,10 @@
         "stream": true
       }
     ]
+  },
+  "type": {
+    "sounds": [
+      "dialog:type"
+    ]
   }
 }

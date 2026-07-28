@@ -1356,7 +1356,16 @@ public class DialogScreen extends Screen {
 
         PortraitDisplayData(String path, float brightness, PortraitPosition position, PortraitAnimationType animationType, float size) {
             if (path != null && !path.isEmpty()) {
-                this.resourceLocation = new ResourceLocation(Dialog.MODID, String.format("textures/portraits/%s", path));
+                String namespace = Dialog.MODID;
+                String finalPath = path;
+                if (path.contains(":")) {
+                    String[] split = path.split(":", 2);
+                    namespace = split[0];
+                    finalPath = split[1];
+                } else {
+                    finalPath = String.format("textures/portraits/%s", finalPath);
+                }
+                this.resourceLocation = ResourceLocation.fromNamespaceAndPath(namespace, finalPath);
                 this.brightness = brightness;
                 this.size = Math.max(0.0f, Math.min(5.0f, size)); // 限制范围在0-5之间
                 this.position = position != null ? position : PortraitPosition.RIGHT; // 位置
